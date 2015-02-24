@@ -11,11 +11,20 @@ class UsersController extends BaseController{
 		$my_id = Auth::user()->id;
 		if(Auth::user()->role_id == 2){	
 			$users = User::where('role_id','<>','2')->where('id','<>',$my_id)->get();
-			return View::make('usuarios.usuarios')-> with('users',$users);			
+
+			//Aqui va insertado el log.
+			$log = new Logs();
+			$log->usuario = Auth::user()->username;
+			$log->url =  Request::url();
+			//$log->recurso = json_encode($VARIABLE_ARRAY);
+			$log->save();
+
+			return View::make('usuarios.usuarios')-> with('users',$users);
 		}
 		else{
 			return "sorry no eres administrador";	
-		}	
+		}
+
 	}
 
 	// metodo para agregar al usuario
@@ -36,6 +45,14 @@ class UsersController extends BaseController{
 	    $user->role_id = Input::get('tipo');
         $user->password = Hash::make('123');
 	    $user->save();
+
+		//CARGA DEL LOG
+		$log = new Logs();
+		$log->usuario = Auth::user()->username;
+		$log->url =  Request::url();
+		$log->recurso = json_encode($user);
+		$log->save();
+		//TERMINA CARGA DEL LOG
 
 		return Response::json(array(
 			'success' 	=> 	true,
